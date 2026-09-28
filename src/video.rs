@@ -38,9 +38,23 @@ fn suppress_suspicious_audio_gaps(audio_filter: &gst::Element) {
     });
 }
 
+#[derive(Clone, Copy, Debug, Default)]
+pub enum AudioOutput {
+    #[default]
+    Enabled,
+    Disabled,
+}
+
+fn audio_output_pipeline_fragment(audio_output: AudioOutput) -> &'static str {
+    match audio_output {
+        AudioOutput::Enabled => "",
+        AudioOutput::Disabled => " audio-sink=fakesink",
+    }
+}
+
 #[derive(Debug, Default)]
 pub struct VideoSettings {
-    pub mute: bool,
+    pub audio_output: AudioOutput,
 }
 
 pub fn new_video(
@@ -54,7 +68,7 @@ pub fn new_video(
     let pipeline = format!(
         "playbin uri=\"{}\"{} video-sink=\"videoscale ! videoconvert ! videoflip method=automatic ! appsink name=iced_video drop=true caps=video/x-raw,format=NV12,pixel-aspect-ratio=1/1\"",
         url.as_str(),
-        if settings.mute { " mute=true" } else { "" }
+        audio_output_pipeline_fragment(settings.audio_output)
     );
     let pipeline = gst::parse::launch(pipeline.as_ref())
         .unwrap()

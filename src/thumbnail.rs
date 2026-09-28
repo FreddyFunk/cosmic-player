@@ -15,7 +15,12 @@ pub fn main(
 ) -> Result<(), Box<dyn Error>> {
     let mut image = {
         let thumbnails = {
-            let mut video = match video::new_video(input, video::VideoSettings { mute: true }) {
+            let mut video = match video::new_video(
+                input,
+                video::VideoSettings {
+                    audio_output: video::AudioOutput::Disabled,
+                },
+            ) {
                 Ok(ok) => ok,
                 Err(_err) => return Err(Into::into("missing required plugin".to_string())),
             };
